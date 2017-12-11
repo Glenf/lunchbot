@@ -122,7 +122,7 @@ def lunch_galaxi():
     return get_sodexo(GALAXI_JSON)
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(
         description="Post what's for lunch at local restaurants to HipChat",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -152,41 +152,46 @@ if __name__ == "__main__":
         elif restaurant == "galaxi":
             menu = lunch_galaxi()
 
+        if args.room:
+            target = "{}".format(args.room)
+        else:
+            target = LUNCHBOT_TARGET
+
+        if args.host:
+            host = "{}".format(args.host)
+        else:
+            host = LUNCHBOT_HOST
+
+        if args.token:
+            token = "{}".format(args.token)
+        else:
+            token = LUNCHBOT_TOKEN
+
+        hipchat_opts = {
+            "color": "green",
+            "notify": "true",
+            "message_format": "html",
+            "message": menu
+        }
+
+        hipchat_url = (
+            "https://{}/v2/room/{}/notification?auth_token={}"
+            ).format(host, target, token)
+
+        hipchat_cmd = (
+            "curl -d {} -H 'Content-Type: application/json' {} "
+            ).format(hipchat_opts, hipchat_url)
+
         if args.dry_run:
+            print("\n\n" + hipchat_cmd + "\n\n")
             print(menu)
 
         if not args.dry_run:
 
-            if args.room:
-                target = "{}".format(args.room)
-            else:
-                target = LUNCHBOT_TARGET
-
-            if args.host:
-                host = "{}".format(args.host)
-            else:
-                host = LUNCHBOT_HOST
-
-            if args.token:
-                token = "{}".format(args.token)
-            else:
-                token = LUNCHBOT_TOKEN
-
-            hipchat_opts = {
-                "color": "green",
-                "notify": "true",
-                "message_format": "html",
-                "message": menu
-            }
-
-            hipchat_url = (
-                "https://{}/v2/room/{}/notification?auth_token={}"
-                ).format(host, target, token)
-
-            hipchat_cmd = (
-                "curl -d {} -H 'Content-Type: application/json' {} "
-                ).format(hipchat_opts, hipchat_url)
-
             response = requests.post(hipchat_url, json=hipchat_opts)
+
+
+if __name__ == "__main__":
+    main()
 
 # End of file
