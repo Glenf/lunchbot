@@ -28,6 +28,10 @@ LUNCHBOT_HOST = os.environ.get("LUNCHBOT_HOST")
 NOW = datetime.datetime.now()
 
 ELEKTRA_JSON = (
+    "http://www.sodexo.fi/ruokalistat/output/daily_json/49/"
+    + str(NOW.strftime("%y/%m/%d")) + "/fi"
+)
+GALAXI_JSON = (
     "http://www.sodexo.fi/ruokalistat/output/daily_json/16/"
     + str(NOW.strftime("%y/%m/%d")) + "/fi"
 )
@@ -35,7 +39,7 @@ SMART_JSON = (
     "http://www.amica.fi/modules/json/json/Index?costNumber=3498&language=fi"
 )
 
-RESTAURANTS = ["elektra", "smarthouse"]
+RESTAURANTS = ["elektra", "smarthouse", "galaxi"]
 
 EMOJI = [
     "(candycorn)",
@@ -44,11 +48,13 @@ EMOJI = [
     "(cookie)",
 ]
 
+
 def clean_smart(x):
     c = x.split('(')
     return c[0]
 
-def lunch_smart():
+
+def lunch_smarthouse():
     """
     Get lunch from Smarthouse
     """
@@ -80,11 +86,12 @@ def lunch_smart():
     return "\n<br>".join(todays_menu)
 
 
-def lunch_elektra():
+def get_sodexo(json_feed):
     """
-    Get lunch from Elektra
+    Get lunch from Sodexo
     """
-    response = requests.get(ELEKTRA_JSON)
+    #  response = requests.get(ELEKTRA_JSON)
+    response = requests.get(json_feed)
     data = response.json()
 
     courses = []
@@ -93,12 +100,26 @@ def lunch_elektra():
         courses.append(course['title_fi'])
 
     todays_menu = [
-        "<b>Elektra</b> -- <a href='{0}'>{0}</a>"
-        .format(data['meta']['ref_url']),
+        "<b>{1}</b> -- <a href='{0}'>{0}</a>"
+        .format(data['meta']['ref_url'], data['meta']['ref_title']),
     ]
 
     todays_menu.extend(courses)
     return "<br>".join(todays_menu)
+
+
+def lunch_elektra():
+    """
+    Get lunch from Sodexo Elektra
+    """
+    return get_sodexo(ELEKTRA_JSON)
+
+
+def lunch_galaxi():
+    """
+    Get lunch from Sodexo Galaxi
+    """
+    return get_sodexo(GALAXI_JSON)
 
 
 if __name__ == "__main__":
@@ -127,7 +148,9 @@ if __name__ == "__main__":
         if restaurant == "elektra":
             menu = lunch_elektra()
         elif restaurant == "smarthouse":
-            menu = lunch_smart()
+            menu = lunch_smarthouse()
+        elif restaurant == "galaxi":
+            menu = lunch_galaxi()
 
         if args.dry_run:
             print(menu)
