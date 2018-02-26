@@ -69,9 +69,10 @@ def lunch_smarthouse():
         now = NOW.strftime("%Y-%m-%d")
         if str(menudate) == str(now):
             for course in day['SetMenus']:
-                courses.append(
-                    '<b>' + course['Name'] + '</b>\n'
-                )
+                if course['Name'] is not None:
+                    courses.append(
+                        '<b>' + course['Name'] + '</b>\n'
+                    )
 
                 courses.append(
                     ", ".join(map(clean_smart, course['Components']))
